@@ -57,10 +57,6 @@ VLAN_MEMBER_TAGGED = """
 """
 
 
-#
-# VLAN groups
-#
-
 class VLANGroupTable(BaseTable):
     pk = ToggleColumn()
     name = tables.Column(linkify=True)
@@ -91,9 +87,7 @@ class VLANGroupTable(BaseTable):
         default_columns = ('pk', 'name', 'scope_type', 'scope', 'vlan_count', 'description', 'actions')
 
 
-#
-# VLANs
-#
+
 
 class VLANTable(BaseTable):
     pk = ToggleColumn()
@@ -126,6 +120,8 @@ class VLANTable(BaseTable):
         url_name='ipam:vlan_list'
     )
 
+
+
     class Meta(BaseTable.Meta):
         model = VLAN
         fields = (
@@ -134,8 +130,12 @@ class VLANTable(BaseTable):
         )
         default_columns = ('pk', 'vid', 'name', 'site', 'group', 'prefixes', 'tenant', 'status', 'role', 'description')
         row_attrs = {
-            'class': lambda record: 'success' if not isinstance(record, VLAN) else '',
+            'class': lambda record: ''
+            if isinstance(record, VLAN)
+            else 'success'
         }
+
+
 
 
 class VLANMembersTable(BaseTable):

@@ -69,10 +69,6 @@ VRF_LINK = """
 """
 
 
-#
-# RIRs
-#
-
 class RIRTable(BaseTable):
     pk = ToggleColumn()
     name = tables.Column(
@@ -99,10 +95,6 @@ class RIRTable(BaseTable):
         )
         default_columns = ('pk', 'name', 'is_private', 'aggregate_count', 'description', 'actions')
 
-
-#
-# ASNs
-#
 
 class ASNTable(BaseTable):
     pk = ToggleColumn()
@@ -135,10 +127,6 @@ class ASNTable(BaseTable):
         default_columns = ('pk', 'asn', 'rir', 'site_count', 'sites', 'description', 'tenant', 'actions')
 
 
-#
-# Aggregates
-#
-
 class AggregateTable(BaseTable):
     pk = ToggleColumn()
     prefix = tables.Column(
@@ -170,10 +158,6 @@ class AggregateTable(BaseTable):
         default_columns = ('pk', 'prefix', 'rir', 'tenant', 'child_count', 'utilization', 'date_added', 'description')
 
 
-#
-# Roles
-#
-
 class RoleTable(BaseTable):
     pk = ToggleColumn()
     name = tables.Column(
@@ -203,10 +187,6 @@ class RoleTable(BaseTable):
         default_columns = ('pk', 'name', 'prefix_count', 'vlan_count', 'description', 'actions')
 
 
-#
-# Prefixes
-#
-
 class PrefixUtilizationColumn(UtilizationColumn):
     """
     Extend UtilizationColumn to allow disabling the warning & danger thresholds for prefixes
@@ -220,6 +200,8 @@ class PrefixUtilizationColumn(UtilizationColumn):
       {% utilization_graph value %}
     {% endif %}
     """
+
+
 
 
 class PrefixTable(BaseTable):
@@ -283,6 +265,8 @@ class PrefixTable(BaseTable):
         url_name='ipam:prefix_list'
     )
 
+
+
     class Meta(BaseTable.Meta):
         model = Prefix
         fields = (
@@ -292,14 +276,13 @@ class PrefixTable(BaseTable):
         default_columns = (
             'pk', 'prefix', 'status', 'children', 'vrf', 'utilization', 'tenant', 'site', 'vlan', 'role', 'description',
         )
-        row_attrs = {
-            'class': lambda record: 'success' if not record.pk else '',
-        }
+        row_attrs = {'class': lambda record: '' if record.pk else 'success'}
 
 
-#
-# IP ranges
-#
+
+
+
+
 class IPRangeTable(BaseTable):
     pk = ToggleColumn()
     start_address = tables.Column(
@@ -324,6 +307,8 @@ class IPRangeTable(BaseTable):
         url_name='ipam:iprange_list'
     )
 
+
+
     class Meta(BaseTable.Meta):
         model = IPRange
         fields = (
@@ -333,14 +318,12 @@ class IPRangeTable(BaseTable):
         default_columns = (
             'pk', 'start_address', 'end_address', 'size', 'vrf', 'status', 'role', 'tenant', 'description',
         )
-        row_attrs = {
-            'class': lambda record: 'success' if not record.pk else '',
-        }
+        row_attrs = {'class': lambda record: '' if record.pk else 'success'}
 
 
-#
-# IPAddresses
-#
+
+
+
 
 class IPAddressTable(BaseTable):
     pk = ToggleColumn()
@@ -382,6 +365,8 @@ class IPAddressTable(BaseTable):
         url_name='ipam:ipaddress_list'
     )
 
+
+
     class Meta(BaseTable.Meta):
         model = IPAddress
         fields = (
@@ -392,8 +377,12 @@ class IPAddressTable(BaseTable):
             'pk', 'address', 'vrf', 'status', 'role', 'tenant', 'assigned', 'dns_name', 'description',
         )
         row_attrs = {
-            'class': lambda record: 'success' if not isinstance(record, IPAddress) else '',
+            'class': lambda record: ''
+            if isinstance(record, IPAddress)
+            else 'success'
         }
+
+
 
 
 class IPAddressAssignTable(BaseTable):

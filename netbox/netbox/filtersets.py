@@ -185,7 +185,9 @@ class BaseFilterSet(django_filters.FilterSet):
 
         additional_filters = {}
         for existing_filter_name, existing_filter in filters.items():
-            additional_filters.update(cls.get_additional_lookups(existing_filter_name, existing_filter))
+            additional_filters |= cls.get_additional_lookups(
+                existing_filter_name, existing_filter
+            )
 
         filters.update(additional_filters)
 
@@ -228,13 +230,12 @@ class PrimaryModelFilterSet(ChangeLoggedModelFilterSet):
         custom_field_filters = {}
         for custom_field in custom_fields:
             filter_name = f'cf_{custom_field.name}'
-            filter_instance = custom_field.to_filter()
-            if filter_instance:
+            if filter_instance := custom_field.to_filter():
                 custom_field_filters[filter_name] = filter_instance
 
                 # Add relevant additional lookups
                 additional_lookups = self.get_additional_lookups(filter_name, filter_instance)
-                custom_field_filters.update(additional_lookups)
+                custom_field_filters |= additional_lookups
 
         self.filters.update(custom_field_filters)
 
@@ -249,9 +250,10 @@ class OrganizationalModelFilterSet(PrimaryModelFilterSet):
     )
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            models.Q(name__icontains=value) |
-            models.Q(slug__icontains=value)
+        return (
+            queryset.filter(
+                models.Q(name__icontains=value) | models.Q(slug__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )

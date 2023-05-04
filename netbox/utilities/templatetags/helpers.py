@@ -104,8 +104,7 @@ def content_type_id(obj):
     """
     Return the ContentType ID for the given object.
     """
-    content_type = ContentType.objects.get_for_model(obj)
-    if content_type:
+    if content_type := ContentType.objects.get_for_model(obj):
         return content_type.pk
     return None
 
@@ -153,15 +152,15 @@ def humanize_speed(speed):
     if not speed:
         return ''
     if speed >= 1000000000 and speed % 1000000000 == 0:
-        return '{} Tbps'.format(int(speed / 1000000000))
+        return f'{int(speed / 1000000000)} Tbps'
     elif speed >= 1000000 and speed % 1000000 == 0:
-        return '{} Gbps'.format(int(speed / 1000000))
+        return f'{int(speed / 1000000)} Gbps'
     elif speed >= 1000 and speed % 1000 == 0:
-        return '{} Mbps'.format(int(speed / 1000))
+        return f'{int(speed / 1000)} Mbps'
     elif speed >= 1000:
-        return '{} Mbps'.format(float(speed) / 1000)
+        return f'{float(speed) / 1000} Mbps'
     else:
-        return '{} Kbps'.format(speed)
+        return f'{speed} Kbps'
 
 
 @register.filter()
@@ -173,9 +172,7 @@ def humanize_megabytes(mb):
         return ''
     if mb >= 1048576:
         return f'{int(mb / 1048576)} TB'
-    if mb >= 1024:
-        return f'{int(mb / 1024)} GB'
-    return f'{mb} MB'
+    return f'{int(mb / 1024)} GB' if mb >= 1024 else f'{mb} MB'
 
 
 @register.filter()
@@ -235,9 +232,11 @@ def fgcolor(value):
     Return black (#000000) or white (#ffffff) given an arbitrary background color in RRGGBB format.
     """
     value = value.lower().strip('#')
-    if not re.match('^[0-9a-f]{6}$', value):
-        return ''
-    return f'#{foreground_color(value)}'
+    return (
+        f'#{foreground_color(value)}'
+        if re.match('^[0-9a-f]{6}$', value)
+        else ''
+    )
 
 
 @register.filter()
@@ -245,9 +244,7 @@ def divide(x, y):
     """
     Return x/y (rounded).
     """
-    if x is None or y is None:
-        return None
-    return round(x / y)
+    return None if x is None or y is None else round(x / y)
 
 
 @register.filter()
@@ -255,9 +252,7 @@ def percentage(x, y):
     """
     Return x/y as a percentage.
     """
-    if x is None or y is None:
-        return None
-    return round(x / y * 100)
+    return None if x is None or y is None else round(x / y * 100)
 
 
 @register.filter()
@@ -292,7 +287,7 @@ def as_range(n):
     try:
         int(n)
     except TypeError:
-        return list()
+        return []
     return range(n)
 
 
@@ -309,9 +304,7 @@ def startswith(text: str, starts: str) -> bool:
     """
     Template implementation of `str.startswith()`.
     """
-    if isinstance(text, str):
-        return text.startswith(starts)
-    return False
+    return text.startswith(starts) if isinstance(text, str) else False
 
 
 @register.filter
@@ -377,9 +370,8 @@ def querystring(request, **kwargs):
             querydict[k] = str(v)
         elif k in querydict:
             querydict.pop(k)
-    querystring = querydict.urlencode(safe='/')
-    if querystring:
-        return '?' + querystring
+    if querystring := querydict.urlencode(safe='/'):
+        return f'?{querystring}'
     else:
         return ''
 

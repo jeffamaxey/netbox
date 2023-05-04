@@ -23,9 +23,7 @@ class GroupFilterSet(BaseFilterSet):
         fields = ['id', 'name']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(name__icontains=value)
+        return queryset.filter(name__icontains=value) if value.strip() else queryset
 
 
 class UserFilterSet(BaseFilterSet):
@@ -50,13 +48,15 @@ class UserFilterSet(BaseFilterSet):
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(username__icontains=value) |
-            Q(first_name__icontains=value) |
-            Q(last_name__icontains=value) |
-            Q(email__icontains=value)
+        return (
+            queryset.filter(
+                Q(username__icontains=value)
+                | Q(first_name__icontains=value)
+                | Q(last_name__icontains=value)
+                | Q(email__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )
 
 
@@ -100,11 +100,13 @@ class TokenFilterSet(BaseFilterSet):
         fields = ['id', 'key', 'write_enabled']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(user__username__icontains=value) |
-            Q(description__icontains=value)
+        return (
+            queryset.filter(
+                Q(user__username__icontains=value)
+                | Q(description__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )
 
 
@@ -141,9 +143,10 @@ class ObjectPermissionFilterSet(BaseFilterSet):
         fields = ['id', 'name', 'enabled', 'object_types']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) |
-            Q(description__icontains=value)
+        return (
+            queryset.filter(
+                Q(name__icontains=value) | Q(description__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )

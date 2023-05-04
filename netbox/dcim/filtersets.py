@@ -224,11 +224,12 @@ class LocationFilterSet(TenancyFilterSet, OrganizationalModelFilterSet):
         fields = ['id', 'name', 'slug', 'description']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) |
-            Q(description__icontains=value)
+        return (
+            queryset.filter(
+                Q(name__icontains=value) | Q(description__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )
 
 
@@ -327,14 +328,16 @@ class RackFilterSet(PrimaryModelFilterSet, TenancyFilterSet):
         ]
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) |
-            Q(facility_id__icontains=value) |
-            Q(serial__icontains=value.strip()) |
-            Q(asset_tag__icontains=value.strip()) |
-            Q(comments__icontains=value)
+        return (
+            queryset.filter(
+                Q(name__icontains=value)
+                | Q(facility_id__icontains=value)
+                | Q(serial__icontains=value.strip())
+                | Q(asset_tag__icontains=value.strip())
+                | Q(comments__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )
 
 
@@ -388,13 +391,15 @@ class RackReservationFilterSet(PrimaryModelFilterSet, TenancyFilterSet):
         fields = ['id', 'created']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(rack__name__icontains=value) |
-            Q(rack__facility_id__icontains=value) |
-            Q(user__username__icontains=value) |
-            Q(description__icontains=value)
+        return (
+            queryset.filter(
+                Q(rack__name__icontains=value)
+                | Q(rack__facility_id__icontains=value)
+                | Q(user__username__icontains=value)
+                | Q(description__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )
 
 
@@ -458,13 +463,15 @@ class DeviceTypeFilterSet(PrimaryModelFilterSet):
         ]
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(manufacturer__name__icontains=value) |
-            Q(model__icontains=value) |
-            Q(part_number__icontains=value) |
-            Q(comments__icontains=value)
+        return (
+            queryset.filter(
+                Q(manufacturer__name__icontains=value)
+                | Q(model__icontains=value)
+                | Q(part_number__icontains=value)
+                | Q(comments__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )
 
     def _console_ports(self, queryset, name, value):
@@ -504,9 +511,7 @@ class DeviceTypeComponentFilterSet(django_filters.FilterSet):
     )
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(name__icontains=value)
+        return queryset.filter(name__icontains=value) if value.strip() else queryset
 
 
 class ConsolePortTemplateFilterSet(ChangeLoggedModelFilterSet, DeviceTypeComponentFilterSet):
@@ -769,21 +774,21 @@ class DeviceFilterSet(PrimaryModelFilterSet, TenancyFilterSet, LocalConfigContex
         fields = ['id', 'name', 'asset_tag', 'face', 'position', 'airflow', 'vc_position', 'vc_priority']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) |
-            Q(serial__icontains=value.strip()) |
-            Q(inventoryitems__serial__icontains=value.strip()) |
-            Q(asset_tag__icontains=value.strip()) |
-            Q(comments__icontains=value)
-        ).distinct()
+        return (
+            queryset.filter(
+                Q(name__icontains=value)
+                | Q(serial__icontains=value.strip())
+                | Q(inventoryitems__serial__icontains=value.strip())
+                | Q(asset_tag__icontains=value.strip())
+                | Q(comments__icontains=value)
+            ).distinct()
+            if value.strip()
+            else queryset
+        )
 
     def _has_primary_ip(self, queryset, name, value):
         params = Q(primary_ip4__isnull=False) | Q(primary_ip6__isnull=False)
-        if value:
-            return queryset.filter(params)
-        return queryset.exclude(params)
+        return queryset.filter(params) if value else queryset.exclude(params)
 
     def _virtual_chassis_member(self, queryset, name, value):
         return queryset.exclude(virtual_chassis__isnull=value)
@@ -890,12 +895,14 @@ class DeviceComponentFilterSet(django_filters.FilterSet):
     tag = TagFilter()
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) |
-            Q(label__icontains=value) |
-            Q(description__icontains=value)
+        return (
+            queryset.filter(
+                Q(name__icontains=value)
+                | Q(label__icontains=value)
+                | Q(description__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )
 
 
@@ -1034,7 +1041,7 @@ class InterfaceFilterSet(PrimaryModelFilterSet, DeviceComponentFilterSet, CableT
 
     def filter_device(self, queryset, name, value):
         try:
-            devices = Device.objects.filter(**{'{}__in'.format(name): value})
+            devices = Device.objects.filter(**{f'{name}__in': value})
             vc_interface_ids = []
             for device in devices:
                 vc_interface_ids.extend(device.vc_interfaces().values_list('id', flat=True))
@@ -1055,20 +1062,20 @@ class InterfaceFilterSet(PrimaryModelFilterSet, DeviceComponentFilterSet, CableT
 
     def filter_vlan_id(self, queryset, name, value):
         value = value.strip()
-        if not value:
-            return queryset
-        return queryset.filter(
-            Q(untagged_vlan_id=value) |
-            Q(tagged_vlans=value)
+        return (
+            queryset.filter(Q(untagged_vlan_id=value) | Q(tagged_vlans=value))
+            if value
+            else queryset
         )
 
     def filter_vlan(self, queryset, name, value):
         value = value.strip()
-        if not value:
-            return queryset
-        return queryset.filter(
-            Q(untagged_vlan_id__vid=value) |
-            Q(tagged_vlans__vid=value)
+        return (
+            queryset.filter(
+                Q(untagged_vlan_id__vid=value) | Q(tagged_vlans__vid=value)
+            )
+            if value
+            else queryset
         )
 
     def filter_kind(self, queryset, name, value):
@@ -1277,14 +1284,14 @@ class CableFilterSet(TenancyFilterSet, PrimaryModelFilterSet):
         fields = ['id', 'label', 'length', 'length_unit', 'termination_a_id', 'termination_b_id']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(label__icontains=value)
+        return queryset.filter(label__icontains=value) if value.strip() else queryset
 
     def filter_device(self, queryset, name, value):
         queryset = queryset.filter(
-            Q(**{'_termination_a_{}__in'.format(name): value}) |
-            Q(**{'_termination_b_{}__in'.format(name): value})
+            (
+                Q(**{f'_termination_a_{name}__in': value})
+                | Q(**{f'_termination_b_{name}__in': value})
+            )
         )
         return queryset
 
@@ -1449,9 +1456,7 @@ class ConnectionFilterSet(BaseFilterSet):
     )
 
     def filter_connections(self, queryset, name, value):
-        if not value:
-            return queryset
-        return queryset.filter(**{f'{name}__in': value})
+        return queryset.filter(**{f'{name}__in': value}) if value else queryset
 
     def search(self, queryset, name, value):
         if not value.strip():

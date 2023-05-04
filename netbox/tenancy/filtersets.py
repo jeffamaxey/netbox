@@ -65,13 +65,15 @@ class TenantFilterSet(PrimaryModelFilterSet):
         fields = ['id', 'name', 'slug']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) |
-            Q(slug__icontains=value) |
-            Q(description__icontains=value) |
-            Q(comments__icontains=value)
+        return (
+            queryset.filter(
+                Q(name__icontains=value)
+                | Q(slug__icontains=value)
+                | Q(description__icontains=value)
+                | Q(comments__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )
 
 
@@ -159,15 +161,17 @@ class ContactFilterSet(PrimaryModelFilterSet):
         fields = ['id', 'name', 'title', 'phone', 'email', 'address']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) |
-            Q(title__icontains=value) |
-            Q(phone__icontains=value) |
-            Q(email__icontains=value) |
-            Q(address__icontains=value) |
-            Q(comments__icontains=value)
+        return (
+            queryset.filter(
+                Q(name__icontains=value)
+                | Q(title__icontains=value)
+                | Q(phone__icontains=value)
+                | Q(email__icontains=value)
+                | Q(address__icontains=value)
+                | Q(comments__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )
 
 

@@ -103,11 +103,12 @@ class ClusterFilterSet(PrimaryModelFilterSet, TenancyFilterSet):
         fields = ['id', 'name']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) |
-            Q(comments__icontains=value)
+        return (
+            queryset.filter(
+                Q(name__icontains=value) | Q(comments__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )
 
 
@@ -224,18 +225,17 @@ class VirtualMachineFilterSet(PrimaryModelFilterSet, TenancyFilterSet, LocalConf
         fields = ['id', 'name', 'cluster', 'vcpus', 'memory', 'disk']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) |
-            Q(comments__icontains=value)
+        return (
+            queryset.filter(
+                Q(name__icontains=value) | Q(comments__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )
 
     def _has_primary_ip(self, queryset, name, value):
         params = Q(primary_ip4__isnull=False) | Q(primary_ip6__isnull=False)
-        if value:
-            return queryset.filter(params)
-        return queryset.exclude(params)
+        return queryset.filter(params) if value else queryset.exclude(params)
 
 
 class VMInterfaceFilterSet(PrimaryModelFilterSet):
@@ -285,9 +285,10 @@ class VMInterfaceFilterSet(PrimaryModelFilterSet):
         fields = ['id', 'name', 'enabled', 'mtu']
 
     def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) |
-            Q(description__icontains=value)
+        return (
+            queryset.filter(
+                Q(name__icontains=value) | Q(description__icontains=value)
+            )
+            if value.strip()
+            else queryset
         )

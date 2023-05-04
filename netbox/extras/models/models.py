@@ -321,7 +321,7 @@ class ExportTemplate(ChangeLoggedModel):
         Render the template to an HTTP response, delivered as a named file attachment
         """
         output = self.render(queryset)
-        mime_type = 'text/plain' if not self.mime_type else self.mime_type
+        mime_type = self.mime_type if self.mime_type else 'text/plain'
 
         # Build the response
         response = HttpResponse(output, content_type=mime_type)
@@ -573,9 +573,7 @@ class ConfigRevision(models.Model):
         return f'Config revision #{self.pk} ({self.created})'
 
     def __getattr__(self, item):
-        if item in self.data:
-            return self.data[item]
-        return super().__getattribute__(item)
+        return self.data[item] if item in self.data else super().__getattribute__(item)
 
     def activate(self):
         """
